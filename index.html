@@ -78,12 +78,13 @@ function shell(){
   $("#nav").innerHTML=TABS.map(([k,l])=>`<button class="${k===tab?"on":""}" onclick="go('${k}')">${l}</button>`).join("");
   const T={
   home:`<div class="months"><button class="ghost" onclick="mv(-1)">‹</button><b id="ml"></b><button class="ghost" onclick="mv(1)">›</button></div>
-   <div class="card"><h2>Sparziel</h2><div class="row" id="chips"></div>
-   <div class="row"><input id="pct" inputmode="decimal" value="${esc(S.pct)}" oninput="setPct(this.value)"><span class="mut" style="flex:2">% vom Einkommen</span></div></div>
+   <div id="exc"></div>
+   <div id="fixc"></div>
    <div class="card"><h2>Einnahmen im Monat</h2>${S.incomes.map((x,i)=>`<div class="row"><span style="flex:2">${esc(x.name)}</span><input inputmode="decimal" placeholder="${x.amount||0}" value="${(MD[month]||{}).inc&&MD[month].inc[i]!=null?MD[month].inc[i]:""}" onchange="setM('inc',${i},this.value)"></div>`).join("")}
    <div class="row"><span style="flex:2">Sonderzahlung</span><input inputmode="decimal" placeholder="0" value="${(MD[month]||{}).extra||""}" onchange="setM('extra',0,this.value)"></div><div class="mut">Leer lassen = Standardwert aus den Optionen.</div></div>
+   <div class="card"><h2>Sparziel</h2><div class="row" id="chips"></div>
+   <div class="row"><input id="pct" inputmode="decimal" value="${esc(S.pct)}" oninput="setPct(this.value)"><span class="mut" style="flex:2">% vom Einkommen</span></div></div>
    <div id="sum"></div>
-   <div id="fixc"></div>
    <div class="card"><h2>Tatsächlich gespart</h2><div class="row"><input id="svi" inputmode="decimal" placeholder="Betrag in €" value="${(MD[month]||{}).saved??""}" oninput="svDeb()" onchange="saveSv()"><button style="flex:0 0 auto" onclick="saveSv()">Speichern</button></div><div id="svs" class="mut"></div><div id="svr"></div></div>`,
   exp:`<div class="card"><h2>Neue Ausgabe</h2>
    <div class="row"><input id="ea" inputmode="decimal" placeholder="Betrag in €"><input id="ed" type="date" value="${today()}"></div>
@@ -121,14 +122,14 @@ function update(){
     cats.forEach(x=>{if(num(x.budget)&&!(x.id in by))by[x.id]=0});
     const ix=k=>{const i=cats.findIndex(x=>x.id===k);return i<0?999:i};
     const rows=Object.entries(by).sort((a,b)=>ix(a[0])-ix(b[0]));
-    $("#sum").innerHTML=`<div class="card"><h2>Bei ${c.pct} % Sparquote</h2>
+    $("#sum").innerHTML=`<div class="card"><h2>Sparrechner · bei ${c.pct} % Sparquote</h2>
      <div class="kv"><span>Einnahmen</span><b>${eur(c.income)}</b></div>
      <div class="kv"><span>💰 Sparen pro Monat</span><b class="ok">${eur(c.save)}</b></div>
      ${goals.length?`<div class="kv"><span class="mut">↳ davon für Ziele nötig</span><span>${eur(goalNeed())}</span></div>`:""}
      <div class="kv"><span>🛒 Konsumieren pro Monat</span><b>${eur(c.consume)}</b></div>
      <div class="kv"><span class="mut">davon Fixkosten (Ø pro Monat)</span><span>${eur(c.fix)}</span></div>
-     <div class="kv"><span class="mut">davon frei für variable Ausgaben</span><span class="${c.free<0?"bad":""}">${eur(c.free)}</span></div></div>
-     <div class="card"><h2>${mLabel(month)}</h2><div class="big ${c.left<0?"bad":"ok"}">${eur(c.left)}</div>
+     <div class="kv"><span class="mut">davon frei für variable Ausgaben</span><span class="${c.free<0?"bad":""}">${eur(c.free)}</span></div></div>`;
+    $("#exc").innerHTML=`<div class="card"><h2>Ausgaben ${mLabel(month)}</h2><div class="big ${c.left<0?"bad":"ok"}">${eur(c.left)}</div>
      <div class="mut">noch frei · ${eur(c.spent)} von ${eur(c.free)} ausgegeben</div>
      <div class="bar"><i style="width:${c.free>0?Math.min(100,c.spent/c.free*100):100}%;${c.left<0?"background:var(--bad)":""}"></i></div>
      ${rows.length?`<div style="margin-top:12px">${rows.map(([k,v])=>{const b=num((cats.find(x=>x.id===k)||{}).budget),pc=b?v/b*100:0;return `<div style="padding:6px 0;cursor:pointer" onclick="catHist('${k}')"><div class="kv" style="border:0;padding:0"><span>${esc(catName(k))}</span><span class="${b&&v>b?"bad":""}">${eur(v)}${b?" / "+eur(b):""}</span></div>${b?`<div class="bar"><i style="width:${Math.min(100,pc)}%;${pc>100?"background:var(--bad)":pc>80?"background:#d97706":""}"></i></div>`:""}</div>`}).join("")}</div>`:""}</div>`;
